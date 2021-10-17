@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tugas Personal 2 Binus Intro Programming</title>
+    <style>
+      body,
+      html {
+        box-sizing: border-box;
+        overflow-x: hidden;
+        overflow-y: auto;
+        margin: 0;
+        padding: 0;
+      }
+
+      #app {
+        height: 100vh;
+      }
+
+      .container {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        margin: 0;
+        padding: 0 15px;
+        align-items: center;
+      }
+
+      .box-input {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .box-input > h6 {
+        font-weight: normal;
+        font-size: 1rem;
+        line-height: 24px;
+        text-align: center;
+      }
+
+      .box-input form {
+        padding: 10px;
+      }
+
+      .box-input form div,
+      .user-profile {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+      }
+
+      .user-profile .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .user-profile .action-button button {
+        padding: 7px;
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="container">
+        <h3>{{ nim }} {{ mahasiswa }}</h3>
+        <h3>Tugas Personal 2 Binus Intro Programming</h3>
+        <component
+          v-model="model"
+          :is="isComponent"
+          :is-valid="isValid"
+          @cancel="confirmation = 'N'"
+          @confirmation="confirmation = $event"
+          @keluar="isValid ? reset : false"
+        />
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script>
+      Vue.component("data-diri-form", {
+        template: `<div>
+          <div class="box-input">
+            <h6>Input Data Diri</h6>
+            <form ref="form" @submit.prevent="submit">
+              <div>
+                <label>Nama</label>
+                <input v-model="val.nama" autocomplete="off" type="text" :disabled="disabled" />
+              </div>
+              <div v-if="isValid">
+                <label>Alamat</label>
+                <input v-model="val.alamat" autocomplete="off" type="text" :disabled="disabled" />
+              </div>
+              <div>
+                <label>Tanggal Lahir</label>
+                <input v-model="val.tgl_lahir" autocomplete="off" type="text" :disabled="disabled" />
+              </div>
+              <div>
+                <label>No Handphone</label>
+                <input v-model="val.telepon" autocomplete="off" type="text" :disabled="disabled" />
+                <small>Nomor handphone minimal 10 digit</small>
+              </div>
+              <div v-if="isValid">
+                <label>Status</label>
+                <input v-model="val.status" autocomplete="off" type="text" :disabled="disabled" />
+              </div>
+              <div v-if="isValid">
+                <label>Nomor KTP</label>
+                <input v-model="val.no_ktp" autocomplete="off" type="text" :disabled="disabled" />
+              </div>
+              <div>
+                <button v-if="isCancel" @click.prevent="$emit('cancel')" style="margin-bottom: 5px;">
+                  Cancel
+                </button>
+                <button 
+                  v-if="
+                    showBtn && !disabled && isValid || 
+                    showBtn && !disabled
+                  " 
+                  type="submit" 
+                  @click.prevent="submit"
+                >Submit</button>
+              </div>
+            </form>
+          </div>
+        </div>`,
+        props: {
+          disabled: {
+            type: Boolean,
+            default: false,
+          },
+          isCancel: {
+            type: Boolean,
+            default: false,
+          },
+          isValid: {
+            type: Boolean,
+            default: false,
+          },
+          value: {
+            type: Object,
+            default: function () {
+              return {
+                nama: "",
+                alamat: "",
+                telepon: "",
+                tgl_lahir: "",
+                status: "",
+                no_ktp: "",
+              };
+            },
+          },
+        },
+        data() {
+          return {
+            val: this.value,
+          };
+        },
+        watch: {
+          value: {
+            deep: true,
+            handler() {
+              this.val = this.value;
+            },
+          },
+        },
+        computed: {
+          showBtn() {
+            return (
+              this.val.nama.length > 0 &&
+              this.val.telepon.length >= 10 &&
+              this.val.tgl_lahir.length > 0
+            );
+          },
+        },
+        methods: {
+          submit() {
+            if (confirm("Apakah Anda yakin dengan data tersebut?")) {
+              this.$emit("confirmation", "Y");
+            } else {
+              this.$emit("confirmation", "N");
+            }
+          },
+        },
+      });
+
+      Vue.component("user-profile", {
+        template: `<div>
+          <div class="user-profile">
+            <div class="action-button">
+              <button @click.prevent="lihat">Lihat Data Diri</button>
+              <button @click.prevent="edit">Update Data Diri</button>
+              <button @click.stop="keluar">Keluar</button>
+            </div>
+            <div v-if="showForm">
+              <data-diri-form 
+                v-model="val" 
+                :is-valid="isValid" 
+                :is-cancel="cancel"
+                :disabled="disabled"
+                @cancel="$emit('cancel')"
+              />
+            </div>
+          </div>
+        </div>`,
+        props: {
+          isValid: {
+            type: Boolean,
+            default: false,
+          },
+          value: {
+            type: Object,
+            default: function () {
+              return {
+                nama: "",
+                alamat: "",
+                telepon: "",
+                tgl_lahir: "",
+                status: "",
+                no_ktp: "",
+              };
+            },
+          },
+        },
+        data() {
+          return {
+            cancel: false,
+            disabled: false,
+            showForm: false,
+            val: this.value,
+          };
+        },
+        watch: {
+          value: {
+            deep: true,
+            handler() {
+              this.val = this.value;
+            },
+          },
+        },
+        methods: {
+          edit() {
+            this.cancel = true;
+            this.showForm = true;
+            this.disabled = false;
+          },
+          lihat() {
+            this.cancel = false;
+            this.showForm = true;
+            this.disabled = true;
+          },
+          keluar() {
+            if (confirm("Yakin ingin keluar?")) {
+              this.$emit("keluar");
+            }
+          },
+        },
+      });
+
+      const APP = new Vue({
+        el: "#app",
+        data() {
+          return {
+            confirmation: "N",
+            mahasiswa: "Irvine Pramudya Bagaskara",
+            model: {
+              nama: "",
+              alamat: "",
+              telepon: "",
+              tgl_lahir: "",
+              status: "",
+              no_ktp: "",
+            },
+            nim: "2402012324",
+          };
+        },
+        watch: {
+          isComponent(val) {
+            if (val) {
+              if (this.model.alamat === "") this.model.alamat = "-";
+              if (this.model.no_ktp === "") this.model.no_ktp = "-";
+              if (this.model.status === "") this.model.status = "-";
+            }
+          },
+        },
+        computed: {
+          isComponent() {
+            return this.confirmation === "Y"
+              ? "user-profile"
+              : "data-diri-form";
+          },
+          isValid() {
+            return (
+              this.model.nama.length > 0 &&
+              this.model.telepon.length >= 10 &&
+              this.model.tgl_lahir.length > 0 &&
+              this.confirmation === "Y"
+            );
+          },
+          reset() {
+            this.model = {
+              nama: "",
+              alamat: "",
+              telepon: "",
+              tgl_lahir: "",
+              status: "",
+              no_ktp: "",
+            };
+            this.confirmation = "N";
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
